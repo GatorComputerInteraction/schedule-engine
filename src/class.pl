@@ -1,9 +1,10 @@
 
 % Class Data Structure
 class(ClassTuple) :-
-  ClassTuple = (Name, CourseCredits, ClassMeetings),
-  class(Name, CourseCredits, ClassMeetings).
-class(Name, CourseCredits, ClassMeetings) :-
+  ClassTuple = (ID, Name, CourseCredits, ClassMeetings),
+  class(ID, Name, CourseCredits, ClassMeetings).
+class(ID, Name, CourseCredits, ClassMeetings) :-
+  number(ID),
   string(Name),
   number(CourseCredits),
   class_meetings(ClassMeetings).
@@ -28,6 +29,13 @@ day(thursday).
 day(friday).
 day(saturday).
 
+dayByString("M", monday).
+dayByString("T", tuesday).
+dayByString("W", wednesday).
+dayByString("R", thursday).
+dayByString("F", friday).
+dayByString("S", saturday).
+
 % List of valid periods
 period_range([]).
 period_range([F|B]) :-
@@ -51,3 +59,19 @@ period(e1).
 period(e2).
 period(e3).
 period(online).
+
+periodByNumber(1, one).
+periodByNumber(2, two).
+periodByNumber(3, three).
+periodByNumber(4, four).
+periodByNumber(5, five).
+periodByNumber(6, six).
+periodByNumber(7, seven).
+periodByNumber(8, eight).
+periodByNumber(9, nine).
+periodByNumber(10, ten).
+periodByNumber(11, eleven).
+periodByNumber(12, e1).
+periodByNumber(13, e2).
+periodByNumber(14, e3).
+periodByNumber(15, online).

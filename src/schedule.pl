@@ -1,12 +1,13 @@
 :- ensure_loaded(class).
 :- ensure_loaded(terms).
+:- ensure_loaded(request).
 
 % Returns Day-Period pairs
 % Used for turning a list of periods in a day into the pairs, which can be checked
 % for schedule uniqueness.
 occupied_periods(_, [], _).
 occupied_periods(Day, [Period|B], ReturnPeriodList) :-
-  day(D),
+  day(Day),
   period(Period),
   occupied_periods(Day, B, ExpandedL),
   !,
@@ -25,15 +26,15 @@ occupied_periods_days([ClassMeeting|B], ReturnList) :-
 
 % Schedule data structure, list of classes
 schedule([]).
-schedule([(Name, CourseCredits, ClassMeetings)|B]) :-
-  class(Name, CourseCredits, ClassMeetings),
+schedule([(ID, Name, CourseCredits, ClassMeetings)|B]) :-
+  class(ID, Name, CourseCredits, ClassMeetings),
   schedule(B).
 
 % Returns all periods that are occupied by a schedule.
 % Can be used to then determine if there are any period conflicts.
 schedule_occupied_periods([], _).
-schedule_occupied_periods([(Name, CourseCredits, ClassMeetings)|B], ReturnList) :-
-  class(Name, CourseCredits, ClassMeetings),
+schedule_occupied_periods([(ID, Name, CourseCredits, ClassMeetings)|B], ReturnList) :-
+  class(ID, Name, CourseCredits, ClassMeetings),
   schedule_occupied_periods(B, OtherCoursesL),
   occupied_periods_days(ClassMeetings, ExpandedL),
   !,
@@ -57,24 +58,26 @@ valid_schedule(Schedule) :-
 
 % Calculates the number of credits in a schedule
 schedule_credits([], 0).
-schedule_credits([(Name, Credit, Schedule)|B], ReturnCredits) :-
+schedule_credits([(ID, Name, Credit, Schedule)|B], ReturnCredits) :-
   schedule_credits(B, OtherCourseCredits),
-  class(Name, Credit, Schedule),
+  class(ID, Name, Credit, Schedule),
   !,
   plus(Credit, OtherCourseCredits, ReturnCredits).
 
-% TODO avaliable_course should return all courses for that semester from backend
 % True if all courses are avaliable in a semester.
 classes_avaliable(_, []).
 classes_avaliable(Courses, [Course|B]) :-
   member(Course,Courses),
   classes_avaliable(Courses, B).
 
-% TODO avaliable_course should return all courses for that semester from backend
+% TODO Ensure the courselist has separate class items for each "class instance"
 % True if schedule is valid for a given semester
-valid_avaliable_schedule(Term, Year, Schedule) :-
+valid_avaliable_schedule(Term, Year, CourseList, Schedule) :-
   semester(Term, Year),
-  findall((Name, Credit, ClassSchedule), avaliable_course(Term, Year, Name, Credit, ClassSchedule), Courses),
   !,
-  valid_schedule(Schedule),
-  classes_avaliable(Courses, Schedule).
+  findall((ID, Name, Credit, ClassSchedule), avaliable_course(CourseList, ID, Term, Year, Name, Credit, ClassSchedule), Courses),
+  !,
+  maplist(avaliable_course(CourseList), Schedule),
+  maplist(avaliable_course(CourseList), Schedule, ScheduleTuple),
+  valid_schedule(ScheduleTuple),
+  classes_avaliable(Courses, ScheduleTuple).
