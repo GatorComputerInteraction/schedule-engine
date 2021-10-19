@@ -35,6 +35,7 @@ schedule([(ID, Name, CourseCredits, ClassMeetings)|B]) :-
 schedule_occupied_periods([], _).
 schedule_occupied_periods([(ID, Name, CourseCredits, ClassMeetings)|B], ReturnList) :-
   class(ID, Name, CourseCredits, ClassMeetings),
+  !,
   schedule_occupied_periods(B, OtherCoursesL),
   occupied_periods_days(ClassMeetings, ExpandedL),
   !,
@@ -48,20 +49,17 @@ unique([H|T]) :-
   unique(T).
 
 % True if schedule is free of period conflicts, classes are unique and under 18 credits.
-valid_schedule(Schedule) :-
+valid_schedule(Schedule, Credits) :-
   schedule_occupied_periods(Schedule, OccupiedPeriods),
-  schedule_credits(Schedule, Credits),
   !,
-  Credits =< 18,
+  schedule_credits(Schedule, Credits),
   unique(Schedule),
   unique(OccupiedPeriods).
 
 % Calculates the number of credits in a schedule
 schedule_credits([], 0).
-schedule_credits([(ID, Name, Credit, Schedule)|B], ReturnCredits) :-
+schedule_credits([(_, _, Credit, _)|B], ReturnCredits) :-
   schedule_credits(B, OtherCourseCredits),
-  class(ID, Name, Credit, Schedule),
-  !,
   plus(Credit, OtherCourseCredits, ReturnCredits).
 
 % True if all courses are avaliable in a semester.
@@ -72,12 +70,10 @@ classes_avaliable(Courses, [Course|B]) :-
 
 % TODO Ensure the courselist has separate class items for each "class instance"
 % True if schedule is valid for a given semester
-valid_avaliable_schedule(Term, Year, CourseList, Schedule) :-
+valid_avaliable_schedule(Term, Year, CourseList, Schedule, Credits) :-
   semester(Term, Year),
-  !,
   findall((ID, Name, Credit, ClassSchedule), avaliable_course(CourseList, ID, Term, Year, Name, Credit, ClassSchedule), Courses),
-  !,
-  maplist(avaliable_course(CourseList), Schedule),
   maplist(avaliable_course(CourseList), Schedule, ScheduleTuple),
-  valid_schedule(ScheduleTuple),
-  classes_avaliable(Courses, ScheduleTuple).
+  Credits =< 18,
+  classes_avaliable(Courses, ScheduleTuple),
+  valid_schedule(ScheduleTuple, Credits).
