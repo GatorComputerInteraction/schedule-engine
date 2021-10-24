@@ -11,13 +11,19 @@ day_string_to_atom(String, ResultList) :-
   maplist(dayByString, StringList, ResultList).
 
 % Makes http GET request for json.
-get_json_endpoint(URL, Result) :-
+get_json_endpoint(Path, Result) :-
+  getenv('BASE_URL', BaseUrl),
+  string_concat(BaseUrl, Path, URL),
   http_open(URL, In, []),
   json_read_dict(In, Result),
   close(In).
 
 % Ensures course id and instance match.
 find_instance_by_course_id(CourseID, _{instanceId: _, semester: _, year: _, courseId: CourseID, slotId: _, courseModel: _, timeslotModel: _}).
+
+find_degree_course_by_id(DegreeId, _{ degreeId: DegreeId, courseId: _, degreeModel: _, courseModel: _ }).
+
+select_course_id(_{ degreeId: _, courseId: Id, degreeModel: _, courseModel: _ }, Id).
 
 % Extracts slot id from instance id json
 slot_id_from_instance(_{courseId:_,courseModel:_,instanceId:_,semester:_,slotId: ID,timeslotModel:_,year:_}, ID).
@@ -54,16 +60,20 @@ join_course_data(CourseInstances, TimeSlots, _{courseId: ID, courseName: Name, c
   !,
   foldl(append, MeetingListNested, [], MeetingList).
 
-
 % True if course has no instances.
 course_empty(CourseInstances, _{courseId: ID, courseName: _, credits: _}) :-
   include(find_instance_by_course_id(ID), CourseInstances, []).
 
 % Returns needed JSON objects from the endpoint.
 get_courses_endpoints(Courses, CourseInstances, TimeSlots) :-
-  get_json_endpoint('http://localhost:5000/course', Courses),
-  get_json_endpoint('http://localhost:5000/courseinstance', CourseInstances),
-  get_json_endpoint('http://localhost:5000/timeslot', TimeSlots).
+  get_json_endpoint('/course', Courses),
+  get_json_endpoint('/courseinstance', CourseInstances),
+  get_json_endpoint('/timeslot', TimeSlots).
+
+get_required_courses(DegreeId, CourseIdList) :-
+  get_json_endpoint('/DegreeCourse', DegreeCourseList),
+  include(find_degree_course_by_id(DegreeId), DegreeCourseList, FilteredDegrees),
+  maplist(select_course_id, FilteredDegrees, CourseIdList).
 
 % Returns a joined list of all classes from the endpoint.
 get_courses_state(CourseData) :-

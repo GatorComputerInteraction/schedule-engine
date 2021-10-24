@@ -10,6 +10,7 @@
 
 :- http_handler('/complete', handle_complete_request, []).
 :- http_handler('/valid', handle_valid_schedule_request, []).
+:- http_handler('/predict_grad', handle_predict_graduation, []).
 :- http_handler('/', handle_liveness, []).
 
 handle_liveness(_) :-
@@ -24,6 +25,16 @@ handle_complete_request(Request) :-
   http_read_json_dict(Request, Query),
   complete_schedule(Query, Response),
   reply_json_dict(Response).
+
+handle_predict_graduation(Request) :-
+  http_read_json_dict(Request, Query),
+  predict_graduation(Query, Response),
+  reply_json_dict(Response).
+
+predict_graduation(_{current_term: CurrentTerm, current_year: CurrentYear, required_course_ids: RequiredCourses, completed_course_ids: CompletedCourses, max_fall_spring_credits: MaxFallSpringCredits, max_total_summer_credits: MaxSummerCredits }, _{ expected_graduation_year: PredictedYear, expected_graduation_semester: PredictedTerm }) :-
+  termFromString(CurrentTerm, SemesterAtom),
+  get_courses_state(CourseData),
+  predict_graduation(SemesterAtom, CurrentYear, CourseData, CompletedCourses, RequiredCourses, MaxFallSpringCredits, MaxSummerCredits, PredictedTerm, PredictedYear).
 
 complete_schedule(_{term: Term, year: Year, current_course_ids: UIDs, min_credits: MinCredits, max_credits: MaxCredits, max_classes: MaxClasses}, _{schedule: Schedule}) :-
   termFromString(Term, SemesterAtom),
@@ -52,4 +63,7 @@ is_valid_schedule(_, _{error: "Invalid Request"}).
 
 % Starts Server
 server(Port) :-
+  getenv("BASE_URL", BaseUrl),
+  string_concat("Backend Endpoing in Use: ", BaseUrl, DebugMessage),
+  print(DebugMessage),
   http_server(http_dispatch, [port(Port)]).

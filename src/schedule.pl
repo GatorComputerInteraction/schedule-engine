@@ -77,3 +77,42 @@ valid_avaliable_schedule(Term, Year, CourseList, Schedule, Credits) :-
   Credits =< 18,
   classes_avaliable(Courses, ScheduleTuple),
   valid_schedule(ScheduleTuple, Credits).
+
+list_difference(ListA, ListB, Difference):- findall(X, (member(X, ListA), not(member(X, ListB))), Difference).
+
+
+total_course_credit_list_by_id(_, [], 0).
+total_course_credit_list_by_id(CourseList, [CourseId|B], Credits) :-
+  total_course_credit_list_by_id(CourseList, B, TailedCredits),
+  avaliable_course(CourseList, CourseId, _, _, _, FoundCredits, _),
+  plus(FoundCredits, TailedCredits, Credits).
+
+roll_forward_remaining_credits(FinalTerm, RemainingCredits, _, _, FinalTerm) :-
+  RemainingCredits =< 0.
+roll_forward_remaining_credits(summerC, RemainingCredits, MaxFallSpringCredits, MaxSummerCredits, FinalTerm) :-
+  roll_forward_remaining_credits(fall, RemainingCredits - MaxSummerCredits, MaxFallSpringCredits, MaxSummerCredits, FinalTerm).
+roll_forward_remaining_credits(spring, RemainingCredits, MaxFallSpringCredits, MaxSummerCredits, FinalTerm) :-
+  roll_forward_remaining_credits(summerC, RemainingCredits - MaxFallSpringCredits, MaxFallSpringCredits, MaxSummerCredits, FinalTerm).
+roll_forward_remaining_credits(fall, RemainingCredits, MaxFallSpringCredits, MaxSummerCredits, FinalTerm) :-
+  roll_forward_remaining_credits(spring, RemainingCredits - MaxFallSpringCredits, MaxFallSpringCredits, MaxSummerCredits, FinalTerm).
+
+get_credits_remaining_in_year(fall, _, _, 0).
+get_credits_remaining_in_year(spring, MaxFallSpringCredits, MaxSummerCredits, MaxSummerCredits + MaxFallSpringCredits).
+get_credits_remaining_in_year(summerA, MaxFallSpringCredits, _, MaxFallSpringCredits).
+get_credits_remaining_in_year(summerB, MaxFallSpringCredits, _, MaxFallSpringCredits).
+get_credits_remaining_in_year(summerC, MaxFallSpringCredits, _, MaxFallSpringCredits).
+
+predict_graduation_year(CreditsRemaining, MaxFallSpringCredits, MaxSummerCredits, CurrentTerm, CurrentYear, CurrentYear) :-
+  get_credits_remaining_in_year(CurrentTerm, MaxFallSpringCredits, MaxSummerCredits, RemainingCreditsInYear),
+  RemainingCreditsInYear >= CreditsRemaining.
+predict_graduation_year(CreditsRemaining, MaxFallSpringCredits, MaxSummerCredits, _, CurrentYear, FinalYear) :-
+  MaxCreditsPerYear is (MaxFallSpringCredits * 2) + MaxSummerCredits,
+  FinalYear is ceil(CreditsRemaining / MaxCreditsPerYear) + CurrentYear.
+
+predict_graduation(CurrentTerm, CurrentYear, CourseList, CompletedCourses, RequiredCourses, MaxFallSpringCredits, MaxSummerCredits, PredictedTerm, PredictedYear) :-
+  list_difference(RequiredCourses, CompletedCourses, RemainingCourses),
+  total_course_credit_list_by_id(CourseList, RemainingCourses, TotalCreditsToTake),
+  predict_graduation_year(TotalCreditsToTake, MaxFallSpringCredits, MaxSummerCredits, CurrentTerm, CurrentYear, PredictedYear),
+  MaxCreditsPerYear is (MaxFallSpringCredits * 2) + MaxSummerCredits,
+  roll_forward_remaining_credits(CurrentTerm, TotalCreditsToTake mod MaxCreditsPerYear, MaxFallSpringCredits, MaxSummerCredits, PredictedTerm).
+  
