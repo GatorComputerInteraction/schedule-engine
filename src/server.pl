@@ -1,5 +1,4 @@
-:- use_module(library(http/thread_httpd)).
-:- use_module(library(http/http_dispatch)).
+:- use_module(library(http/http_unix_daemon)).
 :- use_module(library(http/http_json)).
 
 :- ensure_loaded(request).
@@ -61,9 +60,4 @@ is_valid_schedule(_{term: Term, year: Year, course_ids: UIDs}, _{valid: true}) :
 is_valid_schedule(_{term: _, year: _, course_ids: _}, _{valid: false}).
 is_valid_schedule(_, _{error: "Invalid Request"}).
 
-% Starts Server
-server(Port) :-
-  getenv("BASE_URL", BaseUrl),
-  string_concat("Backend Endpoing in Use: ", BaseUrl, DebugMessage),
-  print(DebugMessage),
-  http_server(http_dispatch, [port(Port)]).
+:- initialization http_daemon.
