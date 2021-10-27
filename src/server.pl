@@ -7,10 +7,10 @@
 % Paths
 %:- http_handler('/finishby', handle_finish_by_request, []).
 
-:- http_handler('/complete', handle_complete_request, []).
-:- http_handler('/valid', handle_valid_schedule_request, []).
-:- http_handler('/predict_grad', handle_predict_graduation, []).
-:- http_handler('/', handle_liveness, []).
+:- http_handler('/schedule/complete', handle_complete_request, []).
+:- http_handler('/schedule/valid', handle_valid_schedule_request, []).
+:- http_handler('/schedule/predict_grad', handle_predict_graduation, []).
+:- http_handler('/schedule', handle_liveness, []).
 
 handle_liveness(_) :-
   reply_json_dict(_{ alive: true }).
