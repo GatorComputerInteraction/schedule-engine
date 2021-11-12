@@ -52,6 +52,7 @@ handle_complete_request(Request) :-
   format('~n').
 
 handle_predict_graduation(Request) :-
+  cors_enable,
   http_read_json_dict(Request, Query),
   predict_graduation(Query, Response),
   reply_json_dict(Response).
