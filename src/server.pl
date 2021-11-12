@@ -1,4 +1,5 @@
 :- use_module(library(http/http_cors)).
+:- set_setting(http:cors, [*]).
 :- use_module(library(http/http_unix_daemon)).
 :- use_module(library(http/http_json)).
 
@@ -13,24 +14,20 @@
 :- http_handler('/schedule/predict_grad', handle_predict_graduation, []).
 :- http_handler('/schedule', handle_liveness, []).
 
-handle_liveness(Request) :-
-  cors_enable(Request, [*]),
+handle_liveness(_) :-
   reply_json_dict(_{ alive: true }).
 
 handle_valid_schedule_request(Request) :-
-  cors_enable(Request, [*]),
   http_read_json_dict(Request, Query),
   is_valid_schedule(Query, Response),
   reply_json_dict(Response).
 
 handle_complete_request(Request) :-
-  cors_enable(Request, [*]),
   http_read_json_dict(Request, Query),
   complete_schedule(Query, Response),
   reply_json_dict(Response).
 
 handle_predict_graduation(Request) :-
-  cors_enable(Request, [*]),
   http_read_json_dict(Request, Query),
   predict_graduation(Query, Response),
   reply_json_dict(Response).
