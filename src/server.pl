@@ -15,6 +15,7 @@
 :- http_handler('/schedule', handle_liveness, []).
 
 handle_liveness(_) :-
+  option(method(get), Request), !,
   cors_enable,
   reply_json_dict(_{ alive: true }).
 
@@ -26,6 +27,7 @@ handle_liveness(Request) :-
   format('~n').
 
 handle_valid_schedule_request(Request) :-
+  option(method(post), Request), !,
   cors_enable,
   http_read_json_dict(Request, Query),
   is_valid_schedule(Query, Response),
@@ -39,6 +41,7 @@ handle_valid_schedule_request(Request) :-
   format('~n').
 
 handle_complete_request(Request) :-
+  option(method(post), Request), !,
   cors_enable,
   http_read_json_dict(Request, Query),
   complete_schedule(Query, Response),
@@ -52,6 +55,7 @@ handle_complete_request(Request) :-
   format('~n').
 
 handle_predict_graduation(Request) :-
+  option(method(post), Request), !,
   cors_enable,
   http_read_json_dict(Request, Query),
   predict_graduation(Query, Response),
