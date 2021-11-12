@@ -15,26 +15,50 @@
 :- http_handler('/schedule', handle_liveness, []).
 
 handle_liveness(_) :-
-  cors_enable,
   reply_json_dict(_{ alive: true }).
 
+handle_liveness(Request) :-
+  option(method(options), Request), !,
+  cors_enable(Request,
+    [ methods([get])
+    ]),
+  format('~n').
+
 handle_valid_schedule_request(Request) :-
-  cors_enable,
   http_read_json_dict(Request, Query),
   is_valid_schedule(Query, Response),
   reply_json_dict(Response).
 
+handle_valid_schedule_request(Request) :-
+  option(method(options), Request), !,
+  cors_enable(Request,
+    [ methods([post])
+    ]),
+  format('~n').
+
 handle_complete_request(Request) :-
-  cors_enable, 
   http_read_json_dict(Request, Query),
   complete_schedule(Query, Response),
   reply_json_dict(Response).
 
+handle_complete_request(Request) :-
+  option(method(options), Request), !,
+  cors_enable(Request,
+    [ methods([post])
+    ]),
+  format('~n').
+
 handle_predict_graduation(Request) :-
-  cors_enable,
   http_read_json_dict(Request, Query),
   predict_graduation(Query, Response),
   reply_json_dict(Response).
+
+handle_predict_graduation(Request) :-
+  option(method(options), Request), !,
+  cors_enable(Request,
+    [ methods([post])
+    ]),
+  format('~n').
 
 predict_graduation(_{current_term: CurrentTerm, current_year: CurrentYear, required_course_ids: RequiredCourses, completed_course_ids: CompletedCourses, max_fall_spring_credits: MaxFallSpringCredits, max_total_summer_credits: MaxSummerCredits }, _{ expected_graduation_year: PredictedYear, expected_graduation_semester: PredictedTerm }) :-
   termFromString(CurrentTerm, SemesterAtom),
