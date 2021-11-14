@@ -14,7 +14,7 @@
 :- http_handler('/schedule/predict_grad', handle_predict_graduation, []).
 :- http_handler('/schedule', handle_liveness, []).
 
-handle_liveness(_) :-
+handle_liveness(Request) :-
   option(method(get), Request), !,
   cors_enable,
   reply_json_dict(_{ alive: true }).
@@ -73,7 +73,9 @@ predict_graduation(_{current_term: CurrentTerm, current_year: CurrentYear, requi
   get_courses_state(CourseData),
   predict_graduation(SemesterAtom, CurrentYear, CourseData, CompletedCourses, RequiredCourses, MaxFallSpringCredits, MaxSummerCredits, PredictedTerm, PredictedYear).
 
-complete_schedule(_{term: Term, year: Year, current_course_ids: UIDs, min_credits: MinCredits, max_credits: MaxCredits, max_classes: MaxClasses}, _{schedule: Schedule}) :-
+
+
+complete_schedule(_{term: Term, year: Year, current_course_ids: UIDs, min_credits: MinCredits, max_credits: MaxCredits, max_classes: MaxClasses, exclude_ids: Exclude}, _{schedule: Schedule}) :-
   termFromString(Term, SemesterAtom),
   get_courses_state(CourseData),
   length(UIDs, CurrentClassCount),
@@ -82,7 +84,8 @@ complete_schedule(_{term: Term, year: Year, current_course_ids: UIDs, min_credit
   between(CurrentClassCount, MaxClasses, ClassCount),
   length(Schedule, ClassCount),
   append(UIDs, _, Schedule),
-  valid_avaliable_schedule(SemesterAtom, Year, CourseData, Schedule, Credits).
+  valid_avaliable_schedule(SemesterAtom, Year, CourseData, Schedule, Credits),
+  no_union(Exclude, Schedule).
 
 is_valid_schedule(_{term: Term, year: _, course_ids: _}, _{error: "Invalid Term"}) :-
   \+ termFromString(Term, _).

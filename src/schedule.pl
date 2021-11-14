@@ -80,6 +80,10 @@ valid_avaliable_schedule(Term, Year, CourseList, Schedule, Credits) :-
 
 list_difference(ListA, ListB, Difference):- findall(X, (member(X, ListA), not(member(X, ListB))), Difference).
 
+no_union([], _).
+no_union([H|T], ListB) :-
+  no_union(T, ListB),
+  \+ member(H, ListB).
 
 total_course_credit_list_by_id(_, [], 0).
 total_course_credit_list_by_id(CourseList, [CourseId|B], Credits) :-
