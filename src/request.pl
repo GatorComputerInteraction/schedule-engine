@@ -51,7 +51,7 @@ timeslot_from_instance_id(SlotIds, _{slotId: SlotId, day: DayString, periodId1: 
   build_day_period_list(Days, [PeriodOne, PeriodTwo, PeriodThree], MeetingList).
 
 % Combines a course with it's instances and time slots.
-join_course_data(CourseInstances, TimeSlots, _{courseId: ID, courseName: Name, credits: Credits}, (ID, Semester, Year, Name, Credits, MeetingList)) :-
+join_course_data(CourseInstances, TimeSlots, _{courseId: ID, courseName: Name, credits: Credits, friendlyName: _}, (ID, Semester, Year, Name, Credits, MeetingList)) :-
   include(find_instance_by_course_id(ID), CourseInstances, InstancesForID),
   InstancesForID = [_{courseId:_,instanceId:_,semester: SemesterString ,slotId: _,year: Year}|_],
   termFromString(SemesterString, Semester),
@@ -61,7 +61,7 @@ join_course_data(CourseInstances, TimeSlots, _{courseId: ID, courseName: Name, c
   foldl(append, MeetingListNested, [], MeetingList).
 
 % True if course has no instances.
-course_empty(CourseInstances, _{courseId: ID, courseName: _, credits: _}) :-
+course_empty(CourseInstances, _{courseId: ID, courseName: _, credits: _, friendlyName: _}) :-
   include(find_instance_by_course_id(ID), CourseInstances, []).
 
 % Returns needed JSON objects from the endpoint.
