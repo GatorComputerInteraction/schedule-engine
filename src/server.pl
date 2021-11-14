@@ -75,7 +75,7 @@ predict_graduation(_{current_term: CurrentTerm, current_year: CurrentYear, requi
 
 
 
-complete_schedule(_{term: Term, year: Year, current_course_ids: UIDs, min_credits: MinCredits, max_credits: MaxCredits, max_classes: MaxClasses, exclude_ids: Exclude}, _{schedule: Schedule}) :-
+complete_schedule(_{term: Term, year: Year, current_course_ids: UIDs, min_credits: MinCredits, max_credits: MaxCredits, max_classes: MaxClasses, exclude_ids: Exclude}, _{additions: Additions, schedule: Schedule}) :-
   termFromString(Term, SemesterAtom),
   get_courses_state(CourseData),
   length(UIDs, CurrentClassCount),
@@ -83,7 +83,7 @@ complete_schedule(_{term: Term, year: Year, current_course_ids: UIDs, min_credit
   between(MinCredits, MaxCredits, Credits),
   between(CurrentClassCount, MaxClasses, ClassCount),
   length(Schedule, ClassCount),
-  append(UIDs, _, Schedule),
+  append(UIDs, Additions, Schedule),
   valid_avaliable_schedule(SemesterAtom, Year, CourseData, Schedule, Credits),
   no_union(Exclude, Schedule).
 
