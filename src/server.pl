@@ -79,13 +79,13 @@ complete_schedule(_{term: Term, year: Year, current_course_ids: UIDs, min_credit
   termFromString(Term, SemesterAtom),
   get_courses_state(CourseData),
   length(UIDs, CurrentClassCount),
-  !,
   between(MinCredits, MaxCredits, Credits),
   between(CurrentClassCount, MaxClasses, ClassCount),
   length(Schedule, ClassCount),
   append(UIDs, Additions, Schedule),
   valid_avaliable_schedule(SemesterAtom, Year, CourseData, Schedule, Credits),
   no_union(Exclude, Schedule).
+complete_schedule(_, _{additions: [], schedule: []}).
 
 is_valid_schedule(_{term: Term, year: _, course_ids: _}, _{error: "Invalid Term"}) :-
   \+ termFromString(Term, _).
